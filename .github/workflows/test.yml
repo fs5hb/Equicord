@@ -27,7 +27,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ETOKEN }}
 
   Test:
-    name: Test
+    name: Test For Pushes
     needs: DetermineRunner
     if: ${{ github.event_name == 'push' }}
     runs-on: ${{ needs.DetermineRunner.outputs.runner}}
@@ -55,7 +55,7 @@ jobs:
         run: pnpm generatePluginJson
 
   TestForPRs:
-    name: Test for PRs
+    name: Test For Pull Requests
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
 
