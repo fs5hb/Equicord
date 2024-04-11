@@ -27,7 +27,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ETOKEN }}
 
   Test:
-    name: Test For All Pushes
+    name: Test For Pushes
     needs: DetermineRunner
     if: ${{ github.event_name == 'push' }}
     runs-on: ${{ needs.DetermineRunner.outputs.runner}}
