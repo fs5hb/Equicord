@@ -26,6 +26,7 @@ import betterauthapps from "./css/betterauthapps.css?managed";
 import betterstatuspicker from "./css/betterstatuspicker.css?managed";
 import consistentchatbar from "./css/consistentchatbar.css?managed";
 import equicord from "./css/equicord.css?managed";
+import fixnitrothemes from "./css/fixnitrothemes.css?managed";
 import graidentbuttons from "./css/graidentbuttons.css?managed";
 import nitrothemesfix from "./css/nitrothemesfix.css?managed";
 import settingsicons from "./css/settingsicons.css?managed";
@@ -43,6 +44,7 @@ export default definePlugin({
         enableStyle(betterstatuspicker);
         enableStyle(consistentchatbar);
         enableStyle(equicord);
+        enableStyle(fixnitrothemes);
         enableStyle(graidentbuttons);
         enableStyle(nitrothemesfix);
         enableStyle(settingsicons);
@@ -53,6 +55,7 @@ export default definePlugin({
         disableStyle(betterstatuspicker);
         disableStyle(consistentchatbar);
         disableStyle(equicord);
+        disableStyle(fixnitrothemes);
         disableStyle(graidentbuttons);
         disableStyle(nitrothemesfix);
         disableStyle(settingsicons);

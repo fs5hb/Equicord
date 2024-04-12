@@ -1,0 +1,15 @@
+.layer_f7d46a+.layer_f7d46a
+,.container__827e6{
+    background: var(--bg-overlay-app-frame, var(--background-primary));
+}
+.standardSidebarView__12528
+,.contentRegion__08eba
+,.contentRegionScroller__9ae20
+,.sidebarRegionScroller__8113e
+,.page_e5cc79
+{
+    background: none;
+}
+.container__03ec9{
+    background: none !important;
+}
