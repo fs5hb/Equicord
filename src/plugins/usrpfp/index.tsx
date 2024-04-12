@@ -42,6 +42,7 @@ export default definePlugin({
     ),
     patches: [
         {
+            // Normal Profiles
             find: "getUserAvatarURL:",
             replacement: [
                 {
@@ -52,6 +53,16 @@ export default definePlugin({
                     match: /(getUserAvatarURL:\i\(\){return )(\i)}/,
                     replace: "$1$self.getAvatarHook($2)}"
                 }
+            ]
+        },
+        {
+            // Hang Statuses
+            find: "getUserAvatarURL)",
+            replacement: [
+                {
+                    match: /getUserAvatarURL.*?(\i)/,
+                    replace: "getUserAvatarURL($self.getAvatarHook($1))"
+                },
             ]
         }
     ],
