@@ -1,3 +1,4 @@
+
 /*
  * Vencord, a Discord client mod
  * Copyright (c) 2024 Vendicated and contributors
@@ -18,10 +19,10 @@ const settings = definePluginSettings({
         type: OptionType.BOOLEAN,
         description: "Auto close modal when done",
         default: true
-    }
+    },
 });
 
-const generateChatButton: ChatBarButton = () => {
+const SekaiStickerChatButton: ChatBarButton = () => {
     return (
         <ChatBarButton onClick={() => openModal(props => <SekaiStickersModal modalProps={props} settings={settings} />)} tooltip="Sekai Stickers">
             {kanadeSvg()}
@@ -29,22 +30,25 @@ const generateChatButton: ChatBarButton = () => {
     );
 };
 
+let IS_FONTS_LOADED = false;
 export default definePlugin({
     name: "Sekai Stickers",
     description: "Sekai Stickers built in discord originally from github.com/TheOriginalAyaka",
     authors: [Devs.MaiKokain],
+    dependencies: ["ChatInputButtonAPI"],
     settings,
-    start: () => {
+    start: async () => {
         const fonts = [{ name: "YurukaStd", url: "https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/src/fonts/YurukaStd.woff2" }, { name: "SSFangTangTi", url: "https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/src/fonts/ShangShouFangTangTi.woff2" }];
-        fonts.map(n => {
-            new FontFace(n.name, `url(${n.url})`).load().then(
-                font => { document.fonts.add(font); },
-                err => { console.log(err); }
-            );
-        });
-        addChatBarButton("SekaiStickers", generateChatButton);
+        if (!IS_FONTS_LOADED) {
+            fonts.map(n => {
+                new FontFace(n.name, `url(${n.url})`).load().then(
+                    font => { document.fonts.add(font); },
+                    err => { console.log(err); }
+                );
+            });
+            IS_FONTS_LOADED = true;
+        }
+        addChatBarButton("SekaiStickers", SekaiStickerChatButton);
     },
-    stop: () => {
-        removeChatBarButton("SekaiStickers");
-    }
+    stop: () => removeChatBarButton("SekaiStickers")
 });
