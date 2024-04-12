@@ -54,16 +54,6 @@ export default definePlugin({
                     replace: "$1$self.getAvatarHook($2)}"
                 }
             ]
-        },
-        {
-            // Hang Statuses
-            find: "getUserAvatarURL)",
-            replacement: [
-                {
-                    match: /getUserAvatarURL.*?(\i)/,
-                    replace: "getUserAvatarURL($self.getAvatarHook($1))"
-                },
-            ]
         }
     ],
 
