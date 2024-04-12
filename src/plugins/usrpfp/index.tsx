@@ -42,6 +42,7 @@ export default definePlugin({
     ),
     patches: [
         {
+            // Normal Profiles
             find: "getUserAvatarURL:",
             replacement: [
                 {

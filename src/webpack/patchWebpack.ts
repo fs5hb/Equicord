@@ -251,19 +251,19 @@ function patchFactories(factories: Record<string, (module: any, exports: any, re
 
         for (let i = 0; i < patches.length; i++) {
             const patch = patches[i];
+            const executePatch = traceFunction(`patch by ${patch.plugin}`, (match: string | RegExp, replace: string) => code.replace(match, replace));
             if (patch.predicate && !patch.predicate()) continue;
+
             if (!code.includes(patch.find)) continue;
 
             patchedBy.add(patch.plugin);
 
-            const executePatch = traceFunction(`patch by ${patch.plugin}`, (match: string | RegExp, replace: string) => code.replace(match, replace));
             const previousMod = mod;
             const previousCode = code;
 
             // we change all patch.replacement to array in plugins/index
             for (const replacement of patch.replacement as PatchReplacement[]) {
                 if (replacement.predicate && !replacement.predicate()) continue;
-
                 const lastMod = mod;
                 const lastCode = code;
 
@@ -281,17 +281,15 @@ function patchFactories(factories: Record<string, (module: any, exports: any, re
 
                         if (patch.group) {
                             logger.warn(`Undoing patch group ${patch.find} by ${patch.plugin} because replacement ${replacement.match} had no effect`);
-                            mod = previousMod;
                             code = previousCode;
+                            mod = previousMod;
                             patchedBy.delete(patch.plugin);
                             break;
                         }
-
-                        continue;
+                    } else {
+                        code = newCode;
+                        mod = (0, eval)(`// Webpack Module ${id} - Patched by ${[...patchedBy].join(", ")}\n${newCode}\n//# sourceURL=WebpackModule${id}`);
                     }
-
-                    code = newCode;
-                    mod = (0, eval)(`// Webpack Module ${id} - Patched by ${[...patchedBy].join(", ")}\n${newCode}\n//# sourceURL=WebpackModule${id}`);
                 } catch (err) {
                     logger.error(`Patch by ${patch.plugin} errored (Module id is ${id}): ${replacement.match}\n`, err);
 
@@ -329,16 +327,15 @@ function patchFactories(factories: Record<string, (module: any, exports: any, re
                     }
 
                     patchedBy.delete(patch.plugin);
-
                     if (patch.group) {
                         logger.warn(`Undoing patch group ${patch.find} by ${patch.plugin} because replacement ${replacement.match} errored`);
-                        mod = previousMod;
                         code = previousCode;
+                        mod = previousMod;
                         break;
                     }
 
-                    mod = lastMod;
                     code = lastCode;
+                    mod = lastMod;
                 }
             }
 
