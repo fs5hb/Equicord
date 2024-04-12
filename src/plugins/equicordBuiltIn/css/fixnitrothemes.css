@@ -1,3 +1,5 @@
+/* stylelint-disable rule-empty-line-before */
+/* stylelint-disable selector-class-pattern */
 .layer_f7d46a+.layer_f7d46a
 ,.container__827e6{
     background: var(--bg-overlay-app-frame, var(--background-primary));
