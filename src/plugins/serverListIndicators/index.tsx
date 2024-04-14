@@ -128,56 +128,30 @@ export default definePlugin({
 
     renderIndicator: () => {
         const { mode } = Settings.plugins.ServerListIndicators;
-        if (!!(mode & IndicatorType.FRIEND) && !!(mode & IndicatorType.SERVER)) {
-            return <ErrorBoundary noop>
-                <div id="vc-indicators-container">
-                    <Tooltip text={`${onlineFriends} Friends, ${guildCount} Servers`} position="right">
-                        {({ onMouseEnter, onMouseLeave }) => (
-                            <div
-                                id="vc-serverlist-indicators"
-                                onMouseEnter={onMouseEnter}
-                                onMouseLeave={onMouseLeave}>
-                                {!!(mode & IndicatorType.FRIEND) && <FriendsIndicator />}
-                                {!!(mode & IndicatorType.SERVER) && <ServersIndicator />}
-                            </div>
-                        )}
-                    </Tooltip>
-                </div>
-            </ErrorBoundary>;
-        }
-        if (!!(mode & IndicatorType.FRIEND)) {
-            return <ErrorBoundary noop>
-                <div id="vc-indicators-container">
-                    <Tooltip text={`${onlineFriends} Friends`} position="right">
-                        {({ onMouseEnter, onMouseLeave }) => (
-                            <div
-                                id="vc-serverlist-indicators"
-                                onMouseEnter={onMouseEnter}
-                                onMouseLeave={onMouseLeave}>
-                                {!!(mode & IndicatorType.FRIEND) && <FriendsIndicator />}
-                            </div>
-                        )}
-                    </Tooltip>
-                </div>
-            </ErrorBoundary>;
+        let text;
 
+        if (!!(mode & IndicatorType.FRIEND) && !!(mode & IndicatorType.SERVER)) {
+            text = `${onlineFriends} Friends, ${guildCount} Servers`;
+        } else if (!!(mode & IndicatorType.FRIEND)) {
+            text = `${onlineFriends} Friends`;
+        } else if (!!(mode & IndicatorType.SERVER)) {
+            text = `${guildCount} Servers`;
         }
-        if (!!(mode & IndicatorType.SERVER)) {
-            return <ErrorBoundary noop>
-                <div id="vc-indicators-container">
-                    <Tooltip text={`${guildCount} Servers`} position="right">
-                        {({ onMouseEnter, onMouseLeave }) => (
-                            <div
-                                id="vc-serverlist-indicators"
-                                onMouseEnter={onMouseEnter}
-                                onMouseLeave={onMouseLeave}>
-                                {!!(mode & IndicatorType.SERVER) && <ServersIndicator />}
-                            </div>
-                        )}
-                    </Tooltip>
-                </div>
-            </ErrorBoundary>;
-        }
+        return <ErrorBoundary noop>
+            <div id="vc-indicators-container">
+                <Tooltip text={text} position="right">
+                    {({ onMouseEnter, onMouseLeave }) => (
+                        <div
+                            id="vc-serverlist-indicators"
+                            onMouseEnter={onMouseEnter}
+                            onMouseLeave={onMouseLeave}>
+                            {!!(mode & IndicatorType.FRIEND) && <FriendsIndicator />}
+                            {!!(mode & IndicatorType.SERVER) && <ServersIndicator />}
+                        </div>
+                    )}
+                </Tooltip>
+            </div>
+        </ErrorBoundary>;
     },
 
     flux: {

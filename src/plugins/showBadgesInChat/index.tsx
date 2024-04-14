@@ -9,8 +9,8 @@ import { Devs } from "@utils/constants";
 import { isPluginDev } from "@utils/misc";
 import definePlugin from "@utils/types";
 import { findByPropsLazy } from "@webpack";
-import badges from "plugins/_api/badges";
 
+import badges from "../../plugins/_api/badges";
 import settings from "./settings";
 
 let RoleIconComponent: React.ComponentType<any> = () => null;
