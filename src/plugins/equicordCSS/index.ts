@@ -85,21 +85,49 @@ export default definePlugin({
     dependencies: ["ThemeAttributes"],
     settings,
     start() {
-        if (settings.store.betterAuthApps) return enableStyle(betterauthapps);
-        if (settings.store.betterStatusPicker) return enableStyle(betterstatuspicker);
-        if (settings.store.equicord) return enableStyle(equicord);
-        if (settings.store.graidentButtons) return enableStyle(graidentbuttons);
-        if (settings.store.nitroThemesFix) return enableStyle(nitrothemesfix);
-        if (settings.store.settingsIcons) return enableStyle(settingsicons);
-        if (settings.store.userReimagined) return enableStyle(userreimagined);
+        if (settings.store.betterAuthApps) {
+            enableStyle(betterauthapps);
+        }
+        if (settings.store.betterStatusPicker) {
+            enableStyle(betterstatuspicker);
+        }
+        if (settings.store.equicord) {
+            enableStyle(equicord);
+        }
+        if (settings.store.graidentButtons) {
+            enableStyle(graidentbuttons);
+        }
+        if (settings.store.nitroThemesFix) {
+            enableStyle(nitrothemesfix);
+        }
+        if (settings.store.settingsIcons) {
+            enableStyle(settingsicons);
+        }
+        if (settings.store.userReimagined) {
+            enableStyle(userreimagined);
+        }
     },
     stop() {
-        if (settings.store.betterAuthApps) return disableStyle(betterauthapps);
-        if (settings.store.betterStatusPicker) return disableStyle(betterstatuspicker);
-        if (settings.store.equicord) return disableStyle(equicord);
-        if (settings.store.graidentButtons) return disableStyle(graidentbuttons);
-        if (settings.store.nitroThemesFix) return disableStyle(nitrothemesfix);
-        if (settings.store.settingsIcons) return disableStyle(settingsicons);
-        if (settings.store.userReimagined) return disableStyle(userreimagined);
+        if (settings.store.betterAuthApps) {
+            disableStyle(betterauthapps);
+        }
+        if (settings.store.betterStatusPicker) {
+            disableStyle(betterstatuspicker);
+        }
+        if (settings.store.equicord) {
+            disableStyle(equicord);
+        }
+        if (settings.store.graidentButtons) {
+            disableStyle(graidentbuttons);
+        }
+        if (settings.store.nitroThemesFix) {
+            disableStyle(nitrothemesfix);
+        }
+        if (settings.store.settingsIcons) {
+            disableStyle(settingsicons);
+        }
+        if (settings.store.userReimagined) {
+            disableStyle(userreimagined);
+        }
     }
 });
