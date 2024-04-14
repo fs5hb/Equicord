@@ -13,7 +13,7 @@ const settings = definePluginSettings({
     zoomMultiplier: {
         type: OptionType.SLIDER,
         description: "Zoom multiplier",
-        markers: makeRange(4, 16),
+        markers: makeRange(2, 16),
         default: 4,
     },
 });

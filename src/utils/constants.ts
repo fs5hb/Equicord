@@ -568,6 +568,34 @@ export const Devs = /* #__PURE__*/ Object.freeze({
         name: "Combatmaster331",
         id: 790562534503612437n
     },
+    VISHNYA_NET_CHERESHNYA: {
+        name: "Vishnya",
+        id: 282541644484575233n,
+    },
+    Cortex: {
+        name: "Cortex",
+        id: 825069530376044594n,
+    },
+    Woosh: {
+        name: "w00shh.",
+        id: 689165844835860522n,
+    },
+    Hanzy: {
+        name: "hanzydev",
+        id: 1093131781043126322n,
+    },
+    zoodogood: {
+        name: "zoodogood",
+        id: 921403577539387454n,
+    },
+    Drag: {
+        name: "dragalt_",
+        id: 1189903210564038697n,
+    },
+    bhop: {
+        name: "femie",
+        id: 442626774841556992n,
+    },
 } satisfies Record<string, Dev>);
 
 // iife so #__PURE__ works correctly
