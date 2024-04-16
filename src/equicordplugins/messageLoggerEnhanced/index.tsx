@@ -47,158 +47,21 @@ import * as ImageManager from "./utils/saveImage/ImageManager";
 import { downloadLoggedMessages } from "./utils/settingsUtils";
 
 
-export const Flogger = new Logger("MLEnhanced", "#f26c6c");
+export const Flogger = new Logger("MessageLoggerEnhanced", "#f26c6c");
 
 export const cacheSentMessages = new LimitedMap<string, LoggedMessageJSON>();
-
-const idFunctions = {
-    Server: props => props?.guild?.id,
-    User: props => props?.message?.author?.id || props?.user?.id,
-    Channel: props => props.message?.channel_id || props.channel?.id
-} as const;
-
-type idKeys = keyof typeof idFunctions;
-
-function renderListOption(listType: ListType, IdType: idKeys, props: any) {
-    const id = idFunctions[IdType](props);
-    if (!id) return null;
-
-    const isBlocked = settings.store[listType].includes(id);
-    const oppositeListType = listType === "blacklistedIds" ? "whitelistedIds" : "blacklistedIds";
-    const isOppositeBlocked = settings.store[oppositeListType].includes(id);
-    const list = listType === "blacklistedIds" ? "Blacklist" : "Whitelist";
-
-    const addToList = () => addToXAndRemoveFromOpposite(listType, id);
-    const removeFromList = () => removeFromX(listType, id);
-
-    return (
-        <Menu.MenuItem
-            id={`${listType}-${IdType}-${id}`}
-            label={
-                isOppositeBlocked
-                    ? `Move ${IdType} to ${list}`
-                    : isBlocked ? `Remove ${IdType} From ${list}` : `${list} ${IdType}`
-            }
-            action={isBlocked ? removeFromList : addToList}
-        />
-    );
-}
-
-function renderOpenLogs(idType: idKeys, props: any) {
-    const id = idFunctions[idType](props);
-    if (!id) return null;
-
-    return (
-        <Menu.MenuItem
-            id={`open-logs-for-${idType.toLowerCase()}`}
-            label={`Open Logs For ${idType}`}
-            action={() => openLogModal(`${idType.toLowerCase()}:${id}`)}
-        />
-    );
-}
-
-const contextMenuPath: NavContextMenuPatchCallback = (children, props) => {
-    if (!props) return;
-
-    if (!children.some(child => child?.props?.id === "message-logger")) {
-        children.push(
-            <Menu.MenuSeparator />,
-            <Menu.MenuItem
-                id="message-logger"
-                label="Message Logger"
-            >
-
-                <Menu.MenuItem
-                    id="open-logs"
-                    label="Open Logs"
-                    action={() => openLogModal()}
-                />
-
-                {Object.keys(idFunctions).map(IdType => renderOpenLogs(IdType as idKeys, props))}
-
-                <Menu.MenuSeparator />
-
-                {Object.keys(idFunctions).map(IdType => (
-                    <React.Fragment key={IdType}>
-                        {renderListOption("blacklistedIds", IdType as idKeys, props)}
-                        {renderListOption("whitelistedIds", IdType as idKeys, props)}
-                    </React.Fragment>
-                ))}
-
-                {
-                    props.navId === "message"
-                    && (props.message?.deleted || props.message?.editHistory?.length > 0)
-                    && (
-                        <>
-                            <Menu.MenuSeparator />
-                            <Menu.MenuItem
-                                id="remove-message"
-                                label={props.message?.deleted ? "Remove Message (Permanent)" : "Remove Message History (Permanent)"}
-                                color="danger"
-                                action={() =>
-                                    removeLog(props.message.id)
-                                        .then(() => {
-                                            if (props.message.deleted) {
-                                                FluxDispatcher.dispatch({
-                                                    type: "MESSAGE_DELETE",
-                                                    channelId: props.message.channel_id,
-                                                    id: props.message.id,
-                                                    mlDeleted: true
-                                                });
-                                            } else {
-                                                props.message.editHistory = [];
-                                            }
-                                        }).catch(() => Toasts.show({
-                                            type: Toasts.Type.FAILURE,
-                                            message: "Failed to remove message",
-                                            id: Toasts.genId()
-                                        }))
-
-                                }
-                            />
-                        </>
-                    )
-                }
-
-                {
-                    settings.store.hideMessageFromMessageLoggers
-                    && props.navId === "message"
-                    && props.message?.author?.id === UserStore.getCurrentUser().id
-                    && props.message?.deleted === false
-                    && (
-                        <>
-                            <Menu.MenuSeparator />
-                            <Menu.MenuItem
-                                id="hide-from-message-loggers"
-                                label="Delete Message (Hide From Message Loggers)"
-                                color="danger"
-
-                                action={async () => {
-                                    await MessageActions.deleteMessage(props.message.channel_id, props.message.id);
-                                    MessageActions._sendMessage(props.message.channel_id, {
-                                        "content": "redacted eh",
-                                        "tts": false,
-                                        "invalidEmojis": [],
-                                        "validNonShortcutEmojis": []
-                                    }, { nonce: props.message.id });
-                                }}
-
-                            />
-                        </>
-                    )
-                }
-
-            </Menu.MenuItem>
-        );
-    }
-};
 
 const cacheThing = findByPropsLazy("commit", "getOrCreate");
 
 
 const handledMessageIds = new Set();
 async function messageDeleteHandler(payload: MessageDeletePayload & { isBulk: boolean; }) {
-    if (payload.mlDeleted) return;
+    if (payload.mlDeleted) {
+        if (settings.store.permanentlyRemoveLogByDefault)
+            await removeLog(payload.id);
+
+        return;
+    }
 
     if (handledMessageIds.has(payload.id)) {
         // Flogger.warn("skipping duplicate message", payload.id);
@@ -388,6 +251,12 @@ export const settings = definePluginSettings({
         description: "Usually message logger only logs from whitelisted ids and dms, enabling this would mean it would log messages from all servers as well. Note that this may cause the cache to exceed its limit, resulting in some messages being missed. If you are in a lot of servers, this may significantly increase the chances of messages being logged, which can result in a large message record and the inclusion of irrelevant messages.",
     },
 
+    autoCheckForUpdates: {
+        default: true,
+        type: OptionType.BOOLEAN,
+        description: "Automatically check for updates on startup.",
+    },
+
     ignoreBots: {
         type: OptionType.BOOLEAN,
         description: "Whether to ignore messages by bots",
@@ -437,10 +306,29 @@ export const settings = definePluginSettings({
         description: "Always log current selected channel. Blacklisted channels/users will still be ignored.",
     },
 
+    permanentlyRemoveLogByDefault: {
+        default: false,
+        type: OptionType.BOOLEAN,
+        description: "Vencord's base MessageLogger remove log button wiil delete logs permanently",
+    },
+
     hideMessageFromMessageLoggers: {
         default: false,
         type: OptionType.BOOLEAN,
         description: "When enabled, a context menu button will be added to messages to allow you to delete messages without them being logged by other loggers. Might not be safe, use at your own risk."
+    },
+
+    ShowLogsButton: {
+        default: true,
+        type: OptionType.BOOLEAN,
+        description: "Toggle to whenever show the toolbox or not",
+        restartNeeded: true,
+    },
+
+    hideMessageFromMessageLoggersDeletedMessage: {
+        default: "redacted eh",
+        type: OptionType.STRING,
+        description: "The message content to replace the message with when using the hide message from message loggers feature.",
     },
 
     messageLimit: {
@@ -540,10 +428,152 @@ export const settings = definePluginSettings({
 
 });
 
+const idFunctions = {
+    Server: props => props?.guild?.id,
+    User: props => props?.message?.author?.id || props?.user?.id,
+    Channel: props => props.message?.channel_id || props.channel?.id
+} as const;
+
+type idKeys = keyof typeof idFunctions;
+
+function renderListOption(listType: ListType, IdType: idKeys, props: any) {
+    const id = idFunctions[IdType](props);
+    if (!id) return null;
+
+    const isBlocked = settings.store[listType].includes(id);
+    const oppositeListType = listType === "blacklistedIds" ? "whitelistedIds" : "blacklistedIds";
+    const isOppositeBlocked = settings.store[oppositeListType].includes(id);
+    const list = listType === "blacklistedIds" ? "Blacklist" : "Whitelist";
+
+    const addToList = () => addToXAndRemoveFromOpposite(listType, id);
+    const removeFromList = () => removeFromX(listType, id);
+
+    return (
+        <Menu.MenuItem
+            id={`${listType}-${IdType}-${id}`}
+            label={
+                isOppositeBlocked
+                    ? `Move ${IdType} to ${list}`
+                    : isBlocked ? `Remove ${IdType} From ${list}` : `${list} ${IdType}`
+            }
+            action={isBlocked ? removeFromList : addToList}
+        />
+    );
+}
+
+function renderOpenLogs(idType: idKeys, props: any) {
+    const id = idFunctions[idType](props);
+    if (!id) return null;
+
+    return (
+        <Menu.MenuItem
+            id={`open-logs-for-${idType.toLowerCase()}`}
+            label={`Open Logs For ${idType}`}
+            action={() => openLogModal(`${idType.toLowerCase()}:${id}`)}
+        />
+    );
+}
+
+const contextMenuPath: NavContextMenuPatchCallback = (children, props) => {
+    if (!props) return;
+
+    if (!children.some(child => child?.props?.id === "message-logger")) {
+        children.push(
+            <Menu.MenuSeparator />,
+            <Menu.MenuItem
+                id="message-logger"
+                label="Message Logger"
+            >
+
+                <Menu.MenuItem
+                    id="open-logs"
+                    label="Open Logs"
+                    action={() => openLogModal()}
+                />
+
+                {Object.keys(idFunctions).map(IdType => renderOpenLogs(IdType as idKeys, props))}
+
+                <Menu.MenuSeparator />
+
+                {Object.keys(idFunctions).map(IdType => (
+                    <React.Fragment key={IdType}>
+                        {renderListOption("blacklistedIds", IdType as idKeys, props)}
+                        {renderListOption("whitelistedIds", IdType as idKeys, props)}
+                    </React.Fragment>
+                ))}
+
+                {
+                    props.navId === "message"
+                    && (props.message?.deleted || props.message?.editHistory?.length > 0)
+                    && (
+                        <>
+                            <Menu.MenuSeparator />
+                            <Menu.MenuItem
+                                id="remove-message"
+                                label={props.message?.deleted ? "Remove Message (Permanent)" : "Remove Message History (Permanent)"}
+                                color="danger"
+                                action={() =>
+                                    removeLog(props.message.id)
+                                        .then(() => {
+                                            if (props.message.deleted) {
+                                                FluxDispatcher.dispatch({
+                                                    type: "MESSAGE_DELETE",
+                                                    channelId: props.message.channel_id,
+                                                    id: props.message.id,
+                                                    mlDeleted: true
+                                                });
+                                            } else {
+                                                props.message.editHistory = [];
+                                            }
+                                        }).catch(() => Toasts.show({
+                                            type: Toasts.Type.FAILURE,
+                                            message: "Failed to remove message",
+                                            id: Toasts.genId()
+                                        }))
+
+                                }
+                            />
+                        </>
+                    )
+                }
+
+                {
+                    settings.store.hideMessageFromMessageLoggers
+                    && props.navId === "message"
+                    && props.message?.author?.id === UserStore.getCurrentUser().id
+                    && props.message?.deleted === false
+                    && (
+                        <>
+                            <Menu.MenuSeparator />
+                            <Menu.MenuItem
+                                id="hide-from-message-loggers"
+                                label="Delete Message (Hide From Message Loggers)"
+                                color="danger"
+
+                                action={async () => {
+                                    await MessageActions.deleteMessage(props.message.channel_id, props.message.id);
+                                    MessageActions._sendMessage(props.message.channel_id, {
+                                        "content": settings.store.hideMessageFromMessageLoggersDeletedMessage,
+                                        "tts": false,
+                                        "invalidEmojis": [],
+                                        "validNonShortcutEmojis": []
+                                    }, { nonce: props.message.id });
+                                }}
+
+                            />
+                        </>
+                    )
+                }
+
+            </Menu.MenuItem>
+        );
+    }
+};
+
 export default definePlugin({
-    name: "MLEnhanced",
+    name: "MessageLoggerEnhanced",
     authors: [Devs.Aria],
-    description: "Using MessageLogger MLEnhanced logs every server and dm.",
+    description: "G'day",
     dependencies: ["MessageLogger"],
     contextMenus: {
         "message": contextMenuPath,
@@ -571,6 +601,7 @@ export default definePlugin({
 
         {
             find: "toolbar:function",
+            predicate: () => settings.store.ShowLogsButton,
             replacement: {
                 match: /(function \i\(\i\){)(.{1,200}toolbar.{1,100}mobileToolbar)/,
                 replace: "$1$self.addIconToToolBar(arguments[0]);$2"
@@ -595,7 +626,7 @@ export default definePlugin({
         },
 
         {
-            find: ".handleImageLoad)",
+            find: "handleImageLoad=",
             replacement: {
                 match: /(render\(\){)(.{1,100}zoomThumbnailPlaceholder)/,
                 replace: "$1$self.checkImage(this);$2"
@@ -716,9 +747,6 @@ export default definePlugin({
     },
 
     async start() {
-        // if (!settings.store.saveMessages)
-        //     clearLogs();
-
         Native.init();
 
         const { imageCacheDir, logsDir } = await Native.getSettings();
