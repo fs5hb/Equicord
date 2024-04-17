@@ -56,7 +56,7 @@ async function verify(link) {
 export default definePlugin({
     name: "DoubleCounterBypass",
     description: "Bypass Double Counter verifications easily.",
-    authors: [Devs.Dropped],
+    authors: [Devs.nyx],
 
     contextMenus: {
         "message": patchMessageContextMenu,

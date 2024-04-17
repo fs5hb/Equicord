@@ -45,7 +45,7 @@ export default definePlugin({
     name: "MessagePurge",
     description: "Purges messages from a channel",
     dependencies: ["CommandsAPI"],
-    authors: [Devs.bhop, Devs.Dropped],
+    authors: [Devs.bhop, Devs.nyx],
     commands: [
         {
             name: "purge",

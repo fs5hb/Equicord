@@ -31,7 +31,7 @@ function replaceQuestionMarks(content: string): string {
 export default definePlugin({
     name: "QuestionMarkReplace",
     description: "Replace all question marks with chosen string, if message only contains question marks.",
-    authors: [Devs.Dropped],
+    authors: [Devs.nyx],
 
     settings,
 

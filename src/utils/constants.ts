@@ -552,8 +552,8 @@ export const Devs = /* #__PURE__*/ Object.freeze({
         name: "SerStars",
         id: 861631850681729045n
     },
-    Dropped: {
-        name: "dropped",
+    nyx: {
+        name: "verticalsync",
         id: 328165170536775680n,
     },
     MaxHerbold: {
