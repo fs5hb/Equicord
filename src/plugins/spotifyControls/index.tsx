@@ -79,15 +79,17 @@ export default definePlugin({
             }
         }
     ],
+
     start: () => toggleHoverControls(Settings.plugins.SpotifyControls.hoverControls),
+
     PanelWrapper({ VencordOriginal, ...props }) {
         return (
             <>
                 <ErrorBoundary
                     fallback={() => (
                         <div className="vc-spotify-fallback">
-                            <p>Failed to render Spotify Modal :(</p>
-                            <p >Check the console for errors</p>
+                            <p>Failed to render Spotify Modal</p>
+                            <p>Check the console for errors</p>
                         </div>
                     )}
                 >
